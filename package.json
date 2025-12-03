@@ -1,7 +1,7 @@
 {
   "name": "bessonniy-vpn",
-  "version": "1.0.0",
-  "description": "**Bessonniy VPN** — мобильный VPN-клиент на Flutter, использующий протокол Shadowsocks/Outline. Приложение позволяет хранить несколько ss:// ключей, быстро переключаться между серверами и управлять подключением через нативный сервис Android.",
+  "version": "1.0.1",
+  "description": "**GenesisAI** — это стартовый репозиторий, предназначенный для быстрой инициализации проектов с помощью интеллектуальных ИИ-агентов. Его основная цель — автоматизировать процесс создания всесторонней документации, спецификаций и, в будущем, самого кода, позволяя разработчикам сосредоточиться на инновациях и уникальных аспектах своего проекта.",
   "main": "agents/doc_agents/orchestrator/doc-agent-orchestrator.js",
   "type": "module",
   "directories": {
@@ -9,6 +9,7 @@
   },
   "scripts": {
     "generate-docs": "node agents/doc_agents/orchestrator/doc-agent-orchestrator.js",
+    "generate-code": "node agents/code_agents/orchestrator/code-agent-orchestrator.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
