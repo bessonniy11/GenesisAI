@@ -248,6 +248,7 @@ async function runAgentWorkflow() {
     console.warn(`Достигнут лимит итераций (${maxIterations}), задача не завершена.`);
   } else {
     console.log("Готово: статус завершено.");
+    console.log(`Токены всего ~${totalEstimatedTokens}`);
   }
 }
 
