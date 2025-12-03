@@ -14,7 +14,8 @@
     "AGENTS.md"
   ],
   "secondaryAgentRuleFiles": [
-    "agents/doc_agents/rules/mcp_analytics_agent.xml"
+    "agents/doc_agents/rules/mcp_analytics_agent.xml",
+    "AGENTS.md"
   ],
   "maxContextChars": 80000,
   "maxAdditionalContextChars": 40000,
