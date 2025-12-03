@@ -1,0 +1,28 @@
+{
+  "topic": "Документация и спецификация по задаче",
+  "outputTaskDocsDir": "",
+  "taskDescriptionFile": "D:/aflatter/bessonniy-vpn/agents/doc_agents/config/current-task-description.md",
+  "allowAdditionalFiles": true,
+  "maxIterations": 50,
+  "dialogueLogFile": "D:/aflatter/bessonniy-vpn/agents/doc_agents/task-doc-dialog.md",
+  "primaryAgentPromptFile": "D:/aflatter/bessonniy-vpn/agents/doc_agents/prompts/primary-agent-prompt.md",
+  "secondaryAgentPromptFile": "D:/aflatter/bessonniy-vpn/agents/doc_agents/prompts/secondary-agent-prompt.md",
+  "docsReadmeFile": "D:/aflatter/bessonniy-vpn/docs/README.md",
+  "additionalContextFiles": [],
+  "additionalContextDirectories": [
+    "D:/aflatter/bessonniy-vpn/docs"
+  ],
+  "primaryAgentRuleFiles": [
+    "D:/aflatter/bessonniy-vpn/AGENTS.local.md",
+    "D:/aflatter/bessonniy-vpn/AGENTS.md"
+  ],
+  "secondaryAgentRuleFiles": [
+    "D:/aflatter/bessonniy-vpn/agents/doc_agents/rules/mcp_analytics_agent.xml"
+  ],
+  "maxContextChars": 80000,
+  "maxAdditionalContextChars": 40000,
+  "tokenReportInterval": "before_review",
+  "maxTokensPerAgentCall": 6000,
+  "writerModel": "gpt-4.1",
+  "reviewerModel": "gpt-4.1"
+}

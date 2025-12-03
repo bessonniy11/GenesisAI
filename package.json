@@ -1,0 +1,20 @@
+{
+  "name": "bessonniy-vpn",
+  "version": "1.0.0",
+  "description": "**Bessonniy VPN** — мобильный VPN-клиент на Flutter, использующий протокол Shadowsocks/Outline. Приложение позволяет хранить несколько ss:// ключей, быстро переключаться между серверами и управлять подключением через нативный сервис Android.",
+  "main": "agents/doc_agents/orchestrator/doc-agent-orchestrator.js",
+  "type": "module",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "generate-docs": "node agents/doc_agents/orchestrator/doc-agent-orchestrator.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@openai/codex-sdk": "^0.50.0"
+  }
+}

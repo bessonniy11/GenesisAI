@@ -1,0 +1,34 @@
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Логи и временные файлы
+*.log
+*.tmp
+*.temp
+
+# Файлы сборки
+*.apk
+*.aab
+*.ipa
+
+# Ключи подписи
+*.jks
+*.keystore
+
+# Backend
+backend/dist/
+backend/.env
+node_modules/
