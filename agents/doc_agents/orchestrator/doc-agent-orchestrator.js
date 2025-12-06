@@ -1,9 +1,23 @@
+/**
+ * Оркестратор двух агентов (писатель + проверяющий) для генерации документации.
+ * Шаги:
+ * 1) Читает конфиг и описание задачи.
+ * 2) Собирает правила и дополнительный контекст.
+ * 3) Запускает писателя: получает JSON с путями и контентом, пишет файлы.
+ * 4) Запускает проверяющего: оценивает консистентность, решает завершена ли задача.
+ * 5) Логирует ход работы и примерные токены.
+ */
 import { Codex } from "@openai/codex-sdk";
 import { readFileSync, writeFileSync, readdirSync, existsSync, mkdirSync } from "fs";
 import path from "path";
 
 const cwd = process.cwd();
 
+/**
+ * Безопасно читает файл в UTF-8.
+ * @param {string} p Путь до файла.
+ * @returns {string} Содержимое или пустая строка при ошибке.
+ */
 const safeRead = (p) => {
   try {
     return readFileSync(p, "utf-8");
@@ -12,17 +26,39 @@ const safeRead = (p) => {
   }
 };
 
+/**
+ * Создаёт каталог при отсутствии (mkdir -p).
+ * @param {string} dir Путь к каталогу.
+ */
 const ensureDir = (dir) => {
   if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
 };
 
+/**
+ * Нормализует путь: абсолютный сохраняет, относительный резолвит от cwd.
+ * @param {string} p Путь.
+ * @returns {string} Нормализованный путь.
+ */
 const resolvePath = (p) => (path.isAbsolute(p) ? path.normalize(p) : path.normalize(path.join(cwd, p)));
 
+/**
+ * Обрезает текст до лимита, добавляя маркер.
+ * @param {string} text Текст.
+ * @param {number} limit Лимит символов.
+ * @returns {string} Исходный или обрезанный текст.
+ */
 const truncate = (text, limit) => {
   if (!limit || text.length <= limit) return text;
   return `${text.slice(0, limit)}\n\n<!-- truncated, original length ${text.length} -->`;
 };
 
+/**
+ * Рекурсивно собирает содержимое файлов из каталога с усечением.
+ * @param {string} dir Каталог.
+ * @param {number} limit Лимит символов на файл.
+ * @param {string[]} acc Аккумулятор.
+ * @returns {string[]} Накопленные куски.
+ */
 const collectFilesRecursive = (dir, limit, acc = []) => {
   if (!dir || !existsSync(dir)) return acc;
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
@@ -36,23 +72,47 @@ const collectFilesRecursive = (dir, limit, acc = []) => {
   return acc;
 };
 
+/**
+ * Склеивает содержимое файлов правил.
+ * @param {string[]} paths Пути к файлам.
+ * @returns {string} Правила одной строкой.
+ */
 const loadRuleFilesContent = (paths) =>
   (paths || [])
     .map((p) => safeRead(p).trim())
     .filter(Boolean)
     .join("\n\n");
 
+/**
+ * Подгружает дополнительные файлы с усечением.
+ * @param {string[]} paths Пути.
+ * @param {number} limit Лимит символов.
+ * @returns {string} Контекст.
+ */
 const loadAdditionalFileContent = (paths, limit) =>
   (paths || [])
     .map((p) => `--- ${p} ---\n${truncate(safeRead(p), limit)}`)
     .join("\n\n");
 
+/**
+ * Подгружает содержимое директорий рекурсивно с усечением.
+ * @param {string[]} dirs Каталоги.
+ * @param {number} limit Лимит символов.
+ * @returns {string} Контекст по дереву каталогов.
+ */
 const loadDirectoryContent = (dirs, limit) => {
   const chunks = [];
   (dirs || []).forEach((dir) => collectFilesRecursive(dir, limit, chunks));
   return chunks.join("\n\n");
 };
 
+/**
+ * Извлекает JSON из ответа LLM: сначала fenced ```json```, затем по скобкам.
+ * @param {string} rawResponse Ответ модели.
+ * @param {string} agentName Имя агента (для сообщения об ошибке).
+ * @returns {object} Распарсенный JSON.
+ * @throws Если JSON не найден или не парсится.
+ */
 function extractJsonFromResponse(rawResponse, agentName) {
   const fenced = rawResponse.match(/```json\s*([\s\S]*?)```/);
   if (fenced) {
@@ -67,14 +127,31 @@ function extractJsonFromResponse(rawResponse, agentName) {
   throw new Error(`${agentName}: не найден JSON-блок. Пример ответа: ${snippet}`);
 }
 
+/**
+ * Приблизительно оценивает токены (символы / 4).
+ * @param {string} text Текст.
+ * @returns {number} Оценка количества токенов.
+ */
 const estimateTokens = (text) => Math.ceil((text || "").length / 4);
 
+/**
+ * Парсит файл описания задачи: первая строка — целевой каталог, дальше текст.
+ * @param {string} taskFile Путь к файлу описания.
+ * @returns {{targetDir: string, taskText: string}}
+ */
 const parseTaskDescription = (taskFile) => {
   const raw = safeRead(taskFile);
   const [first, ...rest] = raw.split(/\r?\n/);
   return { targetDir: resolvePath(first.trim()), taskText: rest.join("\n").trim() };
 };
 
+/**
+ * Делает снимок текущих файлов и последнего отзыва.
+ * @param {string} mainPath Главный файл.
++ * @param {string[]} additionalPaths Дополнительные файлы.
+ * @param {string} feedback Текст отзыва.
+ * @returns {string} Снимок для контекста.
+ */
 const snapshotFiles = (mainPath, additionalPaths, feedback) => {
   const parts = [];
   const main = safeRead(mainPath);
@@ -90,6 +167,10 @@ const snapshotFiles = (mainPath, additionalPaths, feedback) => {
   return parts.join("\n\n");
 };
 
+/**
+ * Главный цикл: подготавливает контекст, запускает писателя и проверяющего,
+ * пишет файлы и выводит токен-отчёт до завершения или достижения лимита итераций.
+ */
 async function runAgentWorkflow() {
   const configPath = process.argv[2] || "agents/doc_agents/config/task-config.json";
   const config = JSON.parse(safeRead(configPath));
